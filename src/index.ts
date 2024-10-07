@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Server } from "socket.io";
 import { createServer } from "http";
-import { Readable } from "stream";
+import { createReadStream } from "fs";
 import fs from "fs";
 import cors from "cors";
 
@@ -16,7 +16,7 @@ const io = new Server(httpServer, {
   },
 });
 
-let messages: Array<string> = [];
+let messages: Array<{ username: string; color: string; message: string }> = [];
 
 // Load messages from JSON file at startup
 fs.readFile("messages.json", "utf-8", (err, data) => {
@@ -27,18 +27,13 @@ fs.readFile("messages.json", "utf-8", (err, data) => {
   }
 });
 
-app.get("/texts", (req: Request, res: Response) => {
-  const stream = new Readable({
-    read() {
-      for (let i = 0; i < 1000; i++) {
-        this.push(`This is line ${i}\n`);
-        this.push("COM STREAM");
-      }
-      this.push("COM STREAM");
-      this.push(null);
-    },
-  });
-  stream.pipe(res);
+app.get("/messages", (req: Request, res: Response) => {
+  try {
+    const readStream = createReadStream("messages.json");
+    readStream.pipe(res);
+  } catch (error) {
+    res.status(200).send("Internal Server Error");
+  }
 });
 
 io.on("connection", (socket) => {
@@ -46,16 +41,19 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
-  socket.on("chat message", (msg) => {
-    console.log("message: " + msg);
-    messages.push(msg);
-    fs.writeFile("messages.json", JSON.stringify(messages), (err) => {
-      if (err) {
-        console.error("Failed to save message:", err);
-      }
-    });
-    io.emit("chat message", msg);
-  });
+  socket.on(
+    "chat message",
+    (msg: { username: string; color: string; message: string }) => {
+      console.log("message: " + msg);
+      messages.push(msg);
+      fs.writeFile("messages.json", JSON.stringify(messages), (err) => {
+        if (err) {
+          console.error("Failed to save message:", err);
+        }
+      });
+      io.emit("chat message", msg);
+    }
+  );
 });
 
 httpServer.listen(3000, () => {
