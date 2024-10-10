@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { Server } from "socket.io";
 import { createServer } from "http";
-import fs, { createReadStream } from "fs";
 import cors from "cors";
 import { MessageRepository } from "./MessageRepository";
 import { Readable } from "stream";
