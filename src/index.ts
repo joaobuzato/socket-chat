@@ -1,12 +1,16 @@
 import express, { Request, Response } from "express";
 import { Server } from "socket.io";
 import { createServer } from "http";
-import { createReadStream } from "fs";
-import fs from "fs";
+import fs, { createReadStream } from "fs";
 import cors from "cors";
+import { MessageRepository } from "./MessageRepository";
+import { Readable } from "stream";
 
 const app = express();
+
 app.use(cors());
+app.use(express.json());
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   path: "/chat",
@@ -15,24 +19,23 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"], // Allow GET and POST methods
   },
 });
+const messageRepository = new MessageRepository();
+messageRepository.createTable().then(() => {
+  console.log("Tabela inicializada");
+});
 
 let messages: Array<{ username: string; color: string; message: string }> = [];
 
-// Load messages from JSON file at startup
-fs.readFile("messages.json", "utf-8", (err, data) => {
-  if (err) {
-    console.error("Failed to load messages from file:", err);
-  } else {
-    messages = JSON.parse(data);
-  }
+messageRepository.getAllMessages().then((data) => {
+  messages = data;
 });
 
 app.get("/messages", (req: Request, res: Response) => {
   try {
-    const readStream = createReadStream("messages.json");
+    const readStream = Readable.from(JSON.stringify(messages, null, 2));
     readStream.pipe(res);
   } catch (error) {
-    res.status(200).send("Internal Server Error");
+    res.status(500).send("Internal Server Error");
   }
 });
 
@@ -44,12 +47,11 @@ io.on("connection", (socket) => {
   socket.on(
     "chat message",
     (msg: { username: string; color: string; message: string }) => {
-      console.log("message: " + msg);
       messages.push(msg);
-      fs.writeFile("messages.json", JSON.stringify(messages), (err) => {
-        if (err) {
-          console.error("Failed to save message:", err);
-        }
+      messageRepository.createMessage({
+        username: msg.username,
+        color: msg.color,
+        message: msg.message,
       });
       io.emit("chat message", msg);
     }

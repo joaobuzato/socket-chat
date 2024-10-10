@@ -5,19 +5,25 @@
   "main": "src.index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "dev": "ts-node-dev --respawn --transpileOnly src/index.ts"
+    "dev": "ts-node-dev --respawn --transpileOnly src/index.ts",
+    "docker:build": "docker build -t socket-chat-api .",
+    "docker:run": "docker run -d -p 3000:3000 socket-chat-api"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^22.7.5",
+    "@types/sqlite3": "^3.1.11",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "socket.io": "^4.8.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   }
 }
