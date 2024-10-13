@@ -11,8 +11,12 @@ services:
       - "3000:3000"
     depends_on:
       - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq
   consumer:
     build: .
     command: npm run consumer
     depends_on:
       - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq
