@@ -4,8 +4,14 @@ import { createServer } from "http";
 import cors from "cors";
 import { MessageRepository } from "./MessageRepository";
 import { Readable } from "stream";
-
+import { getChannel, sendMessageToQueue } from "./rabbitMQService";
+import { Channel } from "amqplib";
 const app = express();
+let channel: Channel;
+
+getChannel().then((ch) => {
+  channel = ch;
+});
 
 app.use(cors());
 app.use(express.json());
@@ -45,8 +51,14 @@ io.on("connection", (socket) => {
   });
   socket.on(
     "chat message",
-    (msg: { username: string; color: string; message: string }) => {
+    async (msg: { username: string; color: string; message: string }) => {
       messages.push(msg);
+
+      try {
+        await sendMessageToQueue(channel, msg);
+      } catch (error) {
+        console.error("Error sending message to queue", error);
+      }
       messageRepository.createMessage({
         username: msg.username,
         color: msg.color,
