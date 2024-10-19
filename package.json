@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "ts-node-dev --respawn --transpileOnly src/index.ts",
-    "consumer": "ts-node src/consumer.ts",
+    "start:consumer": "ts-node src/consumer.ts",
     "compose:up": "docker-compose up -d --build",
     "compose:down": "docker-compose down",
     "compose:logs": "docker-compose logs -f"
@@ -20,6 +20,7 @@
     "amqplib": "^0.10.4",
     "cors": "^2.8.5",
     "express": "^4.21.0",
+    "redis": "^4.7.0",
     "socket.io": "^4.8.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",

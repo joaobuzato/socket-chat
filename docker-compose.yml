@@ -3,20 +3,28 @@ services:
   rabbitmq:
     image: rabbitmq:management
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5673:5672"
+      - "15673:15672"
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6380:6379"
   app:
     build: .
     ports:
       - "3000:3000"
     depends_on:
       - rabbitmq
+      - redis
     environment:
       - RABBITMQ_URL=amqp://rabbitmq
+      - REDIS_HOST=redis
   consumer:
     build: .
-    command: npm run consumer
+    command: npm run start:consumer
     depends_on:
       - rabbitmq
+      - redis
     environment:
       - RABBITMQ_URL=amqp://rabbitmq
+      - REDIS_HOST=redis

@@ -6,6 +6,8 @@ import { MessageRepository } from "./MessageRepository";
 import { Readable } from "stream";
 import { getChannel, sendMessageToQueue } from "./rabbitMQService";
 import { Channel } from "amqplib";
+import redisClient from "./redisClient";
+
 const app = express();
 let channel: Channel;
 
@@ -35,10 +37,23 @@ messageRepository.getAllMessages().then((data) => {
   messages = data;
 });
 
-app.get("/messages", (req: Request, res: Response) => {
+app.get("/messages", async (req: Request, res: Response) => {
   try {
-    const readStream = Readable.from(JSON.stringify(messages, null, 2));
-    readStream.pipe(res);
+    const cacheKey = "messages";
+    const cachedMessages = await redisClient.get(cacheKey);
+    if (cachedMessages) {
+      console.log("Cache hit");
+      const readStream = Readable.from(cachedMessages);
+      readStream.pipe(res);
+    } else {
+      console.log("cache miss");
+      const messagesString = JSON.stringify(messages, null, 2);
+      await redisClient.set(cacheKey, messagesString, {
+        EX: 60, // Cache expiration time in seconds
+      });
+      const readStream = Readable.from(messagesString);
+      readStream.pipe(res);
+    }
   } catch (error) {
     res.status(500).send("Internal Server Error");
   }

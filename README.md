@@ -70,3 +70,9 @@ cd socket-chat
 - `npm run compose:up`: Constrói e inicia os contêineres Docker.
 - `npm run compose:down`: Encerra os contêineres Docker.
 - `npm run compose:logs`: Exibe os logs dos contêineres Docker.
+
+## Caso queira executar o projeto em sua máquina, siga os passos abaixo:
+
+- `sudo apt-get install docker.io`
+- `sudo apt-get install docker-compose`
+- `sudo apt-get-install redis-server`
