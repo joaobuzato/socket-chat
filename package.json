@@ -7,7 +7,7 @@
     "start": "ts-node src/index.ts",
     "dev": "ts-node-dev --respawn --transpileOnly src/index.ts",
     "start:consumer": "ts-node src/consumer.ts",
-    "compose:up": "docker-compose up -d --build",
+    "compose:up": "docker-compose up --build",
     "compose:down": "docker-compose down",
     "compose:logs": "docker-compose logs -f"
   },
